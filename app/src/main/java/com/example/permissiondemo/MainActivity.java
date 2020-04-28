@@ -90,8 +90,13 @@ public class MainActivity extends AppCompatActivity {
             mCameraButton.setEnabled(false);
             mCameraButton.setText("Camera permission is OK");
         }else {
-            mCameraButton.setEnabled(true);
-            mCameraButton.setText("Camera");
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.CAMERA)) {
+                mCameraButton.setEnabled(false);
+                mCameraButton.setText("請至設置介面打開權限");
+            }else {
+                mCameraButton.setEnabled(true);
+                mCameraButton.setText("Camera");
+            }
         }
     }
 }
