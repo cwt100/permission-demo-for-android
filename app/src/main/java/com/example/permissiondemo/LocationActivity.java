@@ -1,16 +1,17 @@
 package com.example.permissiondemo;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 public class LocationActivity extends AppCompatActivity {
 
@@ -22,6 +23,8 @@ public class LocationActivity extends AppCompatActivity {
     private TextView mMessageTextView;
     private TextView mLatitudeTextView;
     private TextView mLongitudeTextView;
+    private AlertDialog.Builder mDialogBuilder;
+    private AlertDialog mDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,20 +39,12 @@ public class LocationActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        clear();
-        boolean isOK = true;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (this.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    || this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                isOK = false;
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_LOCATION_CODE);
-            }
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
         }
 
-        if (isOK) {
-            mGPSModel.getLngAndLat(locationResultListener);
-        }
+        clear();
+        mGPSModel.getLngAndLat(locationResultListener);
     }
 
     @Override
@@ -59,6 +54,14 @@ public class LocationActivity extends AppCompatActivity {
             Log.d(TAG, "onDestroy to release");
             mGPSModel.removeListener();
             mGPSModel = null;
+        }
+
+        if (mDialog != null) {
+            if (mDialog.isShowing()) {
+                mDialog.dismiss();
+            }
+            mDialog = null;
+            mDialogBuilder = null;
         }
     }
 
@@ -75,9 +78,38 @@ public class LocationActivity extends AppCompatActivity {
                 }else {
                     if (!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
                             || !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                        Toast.makeText(this, "請至設置介面打開權限", Toast.LENGTH_SHORT).show();
-                    }else {
+
                         mMessageTextView.setText("請至設置介面打開權限");
+                    }else {
+                        //mMessageTextView.setText("請至設置介面打開權限");
+                        //dialog to user
+                        if (mDialogBuilder == null) {
+                            mDialogBuilder = new AlertDialog.Builder(this);
+                            mDialogBuilder.setTitle("需要定位權限");
+                            mDialogBuilder.setMessage("");
+                            mDialogBuilder.setPositiveButton("前往設定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    ActivityCompat.requestPermissions(LocationActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_LOCATION_CODE);
+                                }
+                            });
+                            mDialogBuilder.setNegativeButton("返回", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    mMessageTextView.setText("請至設置介面打開權限");
+                                    dialog.dismiss();
+                                }
+                            });
+                        }
+
+                        if (mDialog == null) {
+                            mDialog = mDialogBuilder.create();
+                        }
+
+                        if (!mDialog.isShowing()) {
+                            mDialog.show();
+                        }
                     }
                 }
                 break;

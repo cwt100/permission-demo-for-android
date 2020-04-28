@@ -7,8 +7,10 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 
@@ -25,7 +27,6 @@ public class GPSModel {
 
     public interface OnLocationResultListener {
         void onLocationResult(Location location);
-
         void onLocationChange(Location location);
     }
 
@@ -41,9 +42,16 @@ public class GPSModel {
     }
 
     public String getLngAndLat(OnLocationResultListener onLocationResultListener) {
-        double latitude = 0.0;
-        double longitude = 0.0;
+
         mOnLocationResultListener = onLocationResultListener;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions((LocationActivity) mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                return null;
+            }
+        }
 
         String locationProvider = null;
         mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
@@ -59,23 +67,13 @@ public class GPSModel {
             return null;
         }
 
-        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return null;
-        }
-
         Location location = mLocationManager.getLastKnownLocation(locationProvider);
         if (location != null) {
             if (mOnLocationResultListener != null) {
                 mOnLocationResultListener.onLocationResult(location);
             }
         }
+        Log.d(TAG, "requestLocationUpdates");
         mLocationManager.requestLocationUpdates(locationProvider, 3000, 1, locationListener);
         return null;
     }
