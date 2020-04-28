@@ -16,7 +16,7 @@ import androidx.core.app.ActivityCompat;
 public class LocationActivity extends AppCompatActivity {
 
     private static final String TAG = LocationActivity.class.getSimpleName();
-    private static final int PERMISSION_LOCATION_CODE = 1;
+    public static final int PERMISSION_LOCATION_CODE = 1;
 
     private GPSModel mGPSModel;
 

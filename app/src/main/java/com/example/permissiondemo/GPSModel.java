@@ -48,7 +48,7 @@ public class GPSModel {
             if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     || ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions((LocationActivity) mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+                        Manifest.permission.ACCESS_COARSE_LOCATION}, LocationActivity.PERMISSION_LOCATION_CODE);
                 return null;
             }
         }
